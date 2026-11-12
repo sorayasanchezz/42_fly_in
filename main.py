@@ -1,12 +1,13 @@
 import sys
 
 from parser import Parser
+from simulation import Simulation
 
 
 def main() -> None:
-    """Arranca el programa: lee el mapa y ensena los errores sin romperse.
+    """Start the program: read the map and show errors without crashing.
 
-    Uso: python3 main.py <archivo_de_mapa>
+    Usage: python3 main.py <map_file>
     """
     if len(sys.argv) != 2:
         print("Uso: python3 main.py <archivo_de_mapa>", file=sys.stderr)
@@ -14,17 +15,17 @@ def main() -> None:
 
     try:
         my_map = Parser(sys.argv[1]).parse()
+        Simulation(my_map).run()
     except OSError as error:
         print(f"Error: no se puede abrir el archivo: {error}",
               file=sys.stderr)
         sys.exit(1)
-    except ValueError as error:
-        print(f"Error en el mapa: {error}", file=sys.stderr)
+    except UnicodeDecodeError:
+        print("Error: el archivo no es de texto", file=sys.stderr)
         sys.exit(1)
-
-    print(f"Mapa leido: {my_map.nb_drones} drones, "
-          f"{len(my_map.zones)} zonas, "
-          f"{len(my_map.connections)} conexiones")
+    except ValueError as error:
+        print(f"Error: {error}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
