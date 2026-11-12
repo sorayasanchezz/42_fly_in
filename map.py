@@ -62,7 +62,7 @@ class Map:
         for connection in self.connections:
             if {connection.zone_a, connection.zone_b} == {zone_a, zone_b}:
                 return connection
-        raise ValueError(f"no hay conexion {zone_a.name}-{zone_b.name}")
+        raise ValueError(f"no connection {zone_a.name}-{zone_b.name}")
 
     def find_path(self) -> list[Zone]:
         """Find the cheapest path from start to end.

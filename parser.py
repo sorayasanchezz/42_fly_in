@@ -25,19 +25,19 @@ class Parser:
         """
         lines = self.read_lines()
         if len(lines) == 0:
-            raise ValueError("el archivo esta vacio")
+            raise ValueError("the file is empty")
 
         my_map = Map()
         for number, line in lines:
             try:
                 self.parse_line(line, my_map)
             except ValueError as error:
-                raise ValueError(f"linea {number}: {error}")
+                raise ValueError(f"line {number}: {error}")
 
         if my_map.start is None:
-            raise ValueError("falta el start_hub")
+            raise ValueError("start_hub is missing")
         if my_map.end is None:
-            raise ValueError("falta el end_hub")
+            raise ValueError("end_hub is missing")
         return my_map
 
     def read_lines(self) -> list[tuple[int, str]]:
@@ -69,7 +69,7 @@ class Parser:
         elif first_word == "connection:":
             self.parse_connection(line, my_map)
         else:
-            raise ValueError(f"linea desconocida: '{line}'")
+            raise ValueError(f"unknown line: '{line}'")
 
     def parse_nb_drones(self, line: str) -> int:
         """Read 'nb_drones: 5' and return 5.
@@ -81,10 +81,10 @@ class Parser:
             The number of drones.
         """
         if line.count(":") != 1:
-            raise ValueError("la primera linea debe ser 'nb_drones: N'")
+            raise ValueError("the first line must be 'nb_drones: N'")
         key, value = line.split(":")
         if key != "nb_drones":
-            raise ValueError("la primera linea debe ser 'nb_drones: N'")
+            raise ValueError("the first line must be 'nb_drones: N'")
         return self.parse_positive(key, value)
 
     def parse_zone(self, line: str, my_map: Map) -> None:
@@ -96,20 +96,20 @@ class Parser:
         """
         parts = line.split()
         if len(parts) < 4:
-            raise ValueError(f"zona incompleta: '{line}'")
+            raise ValueError(f"incomplete zone: '{line}'")
         if "-" in parts[1]:
-            raise ValueError(f"la zona '{parts[1]}' no puede llevar '-'")
+            raise ValueError(f"zone '{parts[1]}' cannot contain '-'")
         if parts[1] in my_map.zones:
-            raise ValueError(f"la zona '{parts[1]}' esta repetida")
+            raise ValueError(f"zone '{parts[1]}' is repeated")
         try:
             zone = Zone(parts[1], int(parts[2]), int(parts[3]))
         except ValueError:
-            raise ValueError("las coordenadas deben ser numeros enteros")
+            raise ValueError("coordinates must be integers")
 
         for key, value in self.parse_metadata(parts[4:]).items():
             if key == "zone":
                 if value not in ZONE_TYPES:
-                    raise ValueError(f"tipo de zona no valido: '{value}'")
+                    raise ValueError(f"invalid zone type: '{value}'")
                 zone.zone_type = value
             elif key == "color":
                 zone.color = value
@@ -117,17 +117,17 @@ class Parser:
                 if parts[0] == "hub:":
                     zone.max_drones = self.parse_positive(key, value)
             else:
-                raise ValueError(f"extra no valido: '{key}={value}'")
+                raise ValueError(f"invalid extra: '{key}={value}'")
 
         my_map.add_zone(zone)
         if parts[0] == "start_hub:":
             if my_map.start is not None:
-                raise ValueError("hay mas de un start_hub")
+                raise ValueError("there is more than one start_hub")
             zone.max_drones = my_map.nb_drones
             my_map.start = zone
         elif parts[0] == "end_hub:":
             if my_map.end is not None:
-                raise ValueError("hay mas de un end_hub")
+                raise ValueError("there is more than one end_hub")
             zone.max_drones = my_map.nb_drones
             my_map.end = zone
 
@@ -140,26 +140,26 @@ class Parser:
         """
         parts = line.split()
         if len(parts) < 2:
-            raise ValueError(f"conexion incompleta: '{line}'")
+            raise ValueError(f"incomplete connection: '{line}'")
         if parts[1].count("-") != 1:
-            raise ValueError(f"la conexion debe ser 'a-b': '{parts[1]}'")
+            raise ValueError(f"connection must be 'a-b': '{parts[1]}'")
         name_a, name_b = parts[1].split("-")
         if name_a == name_b:
-            raise ValueError("una zona no se puede conectar consigo misma")
+            raise ValueError("a zone cannot connect to itself")
         for name in [name_a, name_b]:
             if name not in my_map.zones:
-                raise ValueError(f"la zona '{name}' no existe")
+                raise ValueError(f"zone '{name}' does not exist")
         zone_a = my_map.zones[name_a]
         zone_b = my_map.zones[name_b]
         if zone_b in my_map.get_neighbors(zone_a):
-            raise ValueError(f"la conexion '{parts[1]}' esta repetida")
+            raise ValueError(f"connection '{parts[1]}' is repeated")
 
         connection = Connection(zone_a, zone_b)
         for key, value in self.parse_metadata(parts[2:]).items():
             if key == "max_link_capacity":
                 connection.max_link_capacity = self.parse_positive(key, value)
             else:
-                raise ValueError(f"extra desconocido: '{key}'")
+                raise ValueError(f"unknown extra: '{key}'")
 
         my_map.add_connection(connection)
 
@@ -177,16 +177,16 @@ class Parser:
         text = " ".join(pieces)
         inside = text[1:-1]
         if text[0] != "[" or text[-1] != "]" or "[" in inside or "]" in inside:
-            raise ValueError(f"los extras deben ir en un solo [ ]: '{text}'")
+            raise ValueError(f"extras must be inside one [ ]: '{text}'")
         result: dict[str, str] = {}
         for piece in inside.split():
             if piece.count("=") != 1:
-                raise ValueError(f"el extra debe ser 'clave=valor': '{piece}'")
+                raise ValueError(f"extra must be 'key=value': '{piece}'")
             key, value = piece.split("=")
             if key == "" or value == "":
-                raise ValueError(f"al extra le falta algo: '{piece}'")
+                raise ValueError(f"extra is missing a key or value: '{piece}'")
             if key in result:
-                raise ValueError(f"el extra '{key}' esta repetido")
+                raise ValueError(f"extra '{key}' is repeated")
             result[key] = value
         return result
 
@@ -203,7 +203,7 @@ class Parser:
         try:
             number = int(value)
         except ValueError:
-            raise ValueError(f"{name} debe ser un numero: '{value.strip()}'")
+            raise ValueError(f"{name} must be a number: '{value.strip()}'")
         if number <= 0:
-            raise ValueError(f"{name} debe ser mayor que 0")
+            raise ValueError(f"{name} must be greater than 0")
         return number

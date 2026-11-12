@@ -1,4 +1,4 @@
-import webcolors
+import webcolors  # type: ignore[import, unused-ignore]
 
 NORMAL = "normal"
 BLOCKED = "blocked"

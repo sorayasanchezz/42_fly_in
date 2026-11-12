@@ -22,7 +22,7 @@ class Simulation:
         for number in range(1, my_map.nb_drones + 1):
             path = my_map.find_path()
             if len(path) == 0:
-                raise ValueError("no hay ningun camino de start a end")
+                raise ValueError("there is no path from start to end")
             for zone in path:
                 zone.load = zone.load + 1
             path[0].count = path[0].count + 1
@@ -106,7 +106,7 @@ class Simulation:
         while not self.all_arrived():
             moves = self.play_turn()
             if len(moves) == 0:
-                raise ValueError("los drones se han quedado atascados")
+                raise ValueError("the drones are stuck")
             print(" ".join(moves))
             print(self.zone_states(), file=sys.stderr)
 
@@ -114,10 +114,10 @@ class Simulation:
         """Return how many drones are in each zone that has drones.
 
         Returns:
-            A line like 'zonas: start:2 roof1:1 goal:3', with colors.
+            A line like 'zones: start:2 roof1:1 goal:3', with colors.
         """
         states: list[str] = []
         for zone in self.my_map.zones.values():
             if zone.count > 0:
                 states.append(zone.paint(f"{zone.name}:{zone.count}"))
-        return "    zonas: " + " ".join(states)
+        return "    zones: " + " ".join(states)
